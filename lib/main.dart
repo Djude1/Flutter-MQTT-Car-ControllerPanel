@@ -40,7 +40,7 @@ class _CarControllerAppState extends State<CarControllerApp> {
   final double deadzone = 0.10;       // 小幅度忽略，避免車身抖動
   final double smoothAlpha = 0.35;    // EMA 平滑係數（越大越靈敏，越小越穩）
   final double step = 0.10;           // 量化步進（0.10 → 共 21 檔）
-  final double minDeltaToSend = 0.05; // 與上次「已送值」差異門檻，小於不送
+  final double minDeltaToSend = 0.2; // 與上次「已送值」差異門檻，小於不送
 
   // 平滑/門檻狀態
   double _rawThr = 0.0, _rawSt = 0.0; // 原始搖桿值
@@ -112,7 +112,7 @@ class _CarControllerAppState extends State<CarControllerApp> {
   /// 目的：覆蓋可能在網路上延遲的舊封包，避免「鬆手車還在跑」
   Future<void> _sendStopBurst() async {
     if (!isConnected) return;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 1; i++) {
       _publishJson({"throttle": 0, "steer": 0}, qos: MqttQos.atLeastOnce);
       await Future.delayed(txInterval);
     }
