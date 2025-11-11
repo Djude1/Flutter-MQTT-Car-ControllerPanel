@@ -151,22 +151,31 @@ class _CarControllerAppState extends State<CarControllerApp> {
       final dzSt  = (_smSt.abs()  < deadzone) ? 0.0 : _smSt;
 
       // 4) 量化
+      // 4) 量化
       final thr = _quantize(dzThr);
       final st  = _quantize(dzSt);
 
+      // === 只在「前進」時把左右反過來，倒退維持原樣 ===
+      const double FWD = 0.05;   // 前進判定門檻(避免0附近抖動)
+      double stOut = st;
+      if (thr > FWD) {
+        stOut = -st; // 前進：把左右取反
+      }
+
       // 5) 變化門檻（相對於「上次已送」）
       final needSend = (thr - _lastSentThr).abs() >= minDeltaToSend ||
-          (st  - _lastSentSt ).abs() >= minDeltaToSend;
+          (stOut - _lastSentSt ).abs() >= minDeltaToSend;
 
       if (!needSend) return;
 
       _lastSentThr = thr;
-      _lastSentSt  = st;
+      _lastSentSt  = stOut;
 
       _publishJson({
         "throttle": double.parse(thr.toStringAsFixed(2)),
-        "steer": double.parse(st.toStringAsFixed(2)),
+        "steer": double.parse(stOut.toStringAsFixed(2)),
       });
+
     });
   }
 
@@ -480,7 +489,7 @@ class _CarControllerAppState extends State<CarControllerApp> {
                                     const Spacer(),
                                     const Divider(height: 24),
                                     const Text(
-                                      '提示：拖曳左側搖桿同時控制前進/後退與左/右轉。放手停車。',
+                                      '提示：拖曳搖桿同時控制前進/後退與左/右。放手停車。',
                                       style: TextStyle(color: Colors.white70),
                                     ),
                                   ],
